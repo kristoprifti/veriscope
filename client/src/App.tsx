@@ -52,6 +52,22 @@ import AlertSubscriptionsPage from "@/pages/AlertSubscriptions";
 import DataExportsPage from "@/pages/DataExports";
 import RefinerySatellite from "@/pages/RefinerySatellite";
 import PortDetailPage from "@/pages/PortDetail";
+import AlertsCommandPage from "@/pages/AlertsCommand";
+import AlertsDestinationsPage from "@/pages/AlertsDestinations";
+import AuditPage from "@/pages/Audit";
+import CommandPage from "@/pages/Command";
+import CongestionPage from "@/pages/Congestion";
+import EscalationsPage from "@/pages/Escalations";
+import FlowsPage from "@/pages/Flows";
+import IncidentsPage from "@/pages/Incidents";
+import InvestigationDetailPage from "@/pages/InvestigationDetail";
+import InvestigationsPage from "@/pages/Investigations";
+import InviteAcceptPage from "@/pages/InviteAccept";
+import TeamPage from "@/pages/Team";
+import TerminalPage from "@/pages/Terminal";
+import ViewsPage from "@/pages/Views";
+import AuthGate from "@/components/AuthGate";
+import RouteBoundary from "@/components/RouteBoundary";
 
 // Maritime subsections (AIS, Port Events, Containers, Bunkering, and Inbox have full pages, Predictive Schedules is a placeholder)
 const PredictiveSchedulesPage = createModulePage("Predictive Schedules", "Event forecasts up to 6 weeks ahead", "/maritime", "Back to Maritime");
@@ -121,7 +137,21 @@ function Router() {
       {/* User features */}
       <Route path="/watchlists" component={WatchlistsPage} />
       <Route path="/alert-rules" component={AlertRulesPage} />
+      <Route path="/alerts/command" component={AlertsCommandPage} />
+      <Route path="/alerts/destinations" component={AlertsDestinationsPage} />
       <Route path="/exports" component={DataExportsPage} />
+      <Route path="/audit" component={AuditPage} />
+      <Route path="/command" component={CommandPage} />
+      <Route path="/congestion" component={CongestionPage} />
+      <Route path="/escalations" component={EscalationsPage} />
+      <Route path="/flows" component={FlowsPage} />
+      <Route path="/incidents" component={IncidentsPage} />
+      <Route path="/investigations/:id" component={InvestigationDetailPage} />
+      <Route path="/investigations" component={InvestigationsPage} />
+      <Route path="/invite/accept" component={InviteAcceptPage} />
+      <Route path="/team" component={TeamPage} />
+      <Route path="/terminal" component={TerminalPage} />
+      <Route path="/views" component={ViewsPage} />
 
       <Route component={NotFound} />
     </Switch>

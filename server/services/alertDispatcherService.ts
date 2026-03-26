@@ -11,6 +11,7 @@ import { SEVERITY_RANK, SignalSeverity } from "@shared/signalTypes";
 import { computeNextAttempt } from "./alertDlqService";
 import { ALERT_DEDUPE_TTL_HOURS, ALERT_RATE_LIMIT_PER_ENDPOINT, DLQ_MAX_ATTEMPTS } from "../config/alerting";
 import { TENANT_DEMO_ID } from "../config/tenancy";
+import { makeDestinationKey } from "./destinationKey";
 
 type RunAlertsOptions = {
   day?: string;
@@ -96,6 +97,7 @@ export async function runAlerts(options: RunAlertsOptions = {}) {
             day: String(candidate.day).slice(0, 10),
             destinationType: sub.channel,
             endpoint: sub.endpoint,
+            destinationKey: makeDestinationKey(sub.channel, sub.endpoint),
             status: "SKIPPED_RATE_LIMIT",
             attempts: 0,
             createdAt: now,
@@ -124,6 +126,7 @@ export async function runAlerts(options: RunAlertsOptions = {}) {
             day: String(candidate.day).slice(0, 10),
             destinationType: sub.channel,
             endpoint: sub.endpoint,
+            destinationKey: makeDestinationKey(sub.channel, sub.endpoint),
             status: "SKIPPED_DEDUPE",
             attempts: 0,
             createdAt: now,
@@ -172,6 +175,7 @@ export async function runAlerts(options: RunAlertsOptions = {}) {
               day: String(candidate.day).slice(0, 10),
               destinationType: sub.channel,
               endpoint: sub.endpoint,
+              destinationKey: makeDestinationKey(sub.channel, sub.endpoint),
               status: "SENT" as const,
               attempts,
               lastHttpStatus: last?.http_status ?? result?.status ?? null,
@@ -223,6 +227,7 @@ export async function runAlerts(options: RunAlertsOptions = {}) {
                 day: String(candidate.day).slice(0, 10),
                 destinationType: sub.channel,
                 endpoint: sub.endpoint,
+                destinationKey: makeDestinationKey(sub.channel, sub.endpoint),
                 status: "SENT" as const,
                 attempts: 1,
                 sentAt: now,
@@ -279,6 +284,7 @@ export async function runAlerts(options: RunAlertsOptions = {}) {
             day: String(candidate.day).slice(0, 10),
             destinationType: sub.channel,
             endpoint: sub.endpoint,
+            destinationKey: makeDestinationKey(sub.channel, sub.endpoint),
             status: "FAILED",
             attempts: attemptLogs.length || 1,
             lastHttpStatus: attemptLogs.length ? attemptLogs[attemptLogs.length - 1]?.http_status : null,

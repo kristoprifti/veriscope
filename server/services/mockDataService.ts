@@ -2,55 +2,54 @@ import { storage } from '../storage';
 import { importAllCSVData } from './csvImportService';
 import bcrypt from 'bcryptjs';
 import { db } from '../db';
-import { logger } from '../middleware/observability';
 import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 class MockDataService {
   async initializeBaseData() {
-    logger.info('Initializing base maritime data...');
+    console.log('Initializing base maritime data...');
 
     try {
       // Create admin user first
       await this.createAdminUser();
-
+      
       // Create ports
       await this.createPorts();
-
+      
       // Create vessels
       await this.createVessels();
-
+      
       // Create storage sites
       await this.createStorageSites();
-
+      
       // Generate initial statistics and data
       await this.generateInitialStats();
-
+      
       // Create commodity pack data
       await this.createCrudeGrades();
       await this.createLngCargoes();
       await this.createDryBulkFixtures();
       await this.createPetrochemProducts();
       await this.createAgriBiofuelFlows();
-
+      
       // Create new intelligence module data
       await this.createRefineries();
       await this.createSupplyDemandBalances();
       await this.createResearchReports();
-
+      
       // Import CSV data for enhanced modules
-      logger.info('Importing CSV data for enhanced modules...');
+      console.log('Importing CSV data for enhanced modules...');
       await importAllCSVData();
-
+      
       // Final verification - log summary of seeded data
       const vesselCount = (await storage.getVessels()).length;
       const portCount = (await storage.getPorts()).length;
-      logger.info('=== INITIALIZATION COMPLETE ===');
-      logger.info(`Vessels in database: ${vesselCount}`);
-      logger.info(`Ports in database: ${portCount}`);
-      logger.info('Base maritime data initialized successfully');
+      console.log('=== INITIALIZATION COMPLETE ===');
+      console.log(`Vessels in database: ${vesselCount}`);
+      console.log(`Ports in database: ${portCount}`);
+      console.log('Base maritime data initialized successfully');
     } catch (error) {
-      logger.error('Failed to initialize base data:', { error });
+      console.error('Failed to initialize base data:', error);
       throw error; // Re-throw to surface errors
     }
   }
@@ -59,15 +58,15 @@ class MockDataService {
     try {
       // Check if admin user already exists
       const existingAdmin = await db.select().from(users).where(eq(users.email, 'admin@example.com')).limit(1);
-
+      
       if (existingAdmin.length > 0) {
-        logger.info('Admin user already exists');
+        console.log('Admin user already exists');
         return;
       }
-
+      
       // Create admin user with bcrypt hashed password
       const passwordHash = await bcrypt.hash('admin123', 10);
-
+      
       await db.insert(users).values({
         id: 'admin-user-id',
         email: 'admin@example.com',
@@ -78,10 +77,10 @@ class MockDataService {
         isActive: true,
         createdAt: new Date(),
       });
-
-      logger.info('Created admin user: admin@example.com / admin123');
+      
+      console.log('Created admin user: admin@example.com / admin123');
     } catch (error: any) {
-      logger.info('Admin user creation error:', { error: error?.message || error });
+      console.log('Admin user creation error:', error?.message || error);
     }
   }
 
@@ -91,47 +90,47 @@ class MockDataService {
         name: 'Fujairah',
         code: 'FJR',
         country: 'AE',
-        type: 'oil_terminal',
         latitude: '25.1204',
         longitude: '56.3541',
         timezone: 'Asia/Dubai',
         unlocode: 'AEFJR',
         countryCode: 'AE',
-        geofenceRadiusKm: '10'
+        geofenceRadiusKm: '10',
+        type: 'oil_terminal'
       },
       {
         name: 'Rotterdam',
         code: 'RTM',
         country: 'NL',
-        type: 'oil_terminal',
         latitude: '51.9225',
         longitude: '4.4792',
         timezone: 'Europe/Amsterdam',
         unlocode: 'NLRTM',
         countryCode: 'NL',
-        geofenceRadiusKm: '15'
+        geofenceRadiusKm: '15',
+        type: 'oil_terminal'
       },
       {
         name: 'Singapore',
         code: 'SIN',
         country: 'SG',
-        type: 'oil_terminal',
         latitude: '1.2644',
         longitude: '103.8200',
         timezone: 'Asia/Singapore',
         unlocode: 'SGSIN',
         countryCode: 'SG',
-        geofenceRadiusKm: '12'
+        geofenceRadiusKm: '12',
+        type: 'oil_terminal'
       }
     ];
 
     for (const port of ports) {
       try {
         await storage.createPort(port);
-        logger.info(`Created port: ${port.name}`);
+        console.log(`Created port: ${port.name}`);
       } catch (error: any) {
         // Port might already exist
-        logger.info(`Port ${port.name} already exists or error:`, { error: error?.message || error });
+        console.log(`Port ${port.name} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -225,29 +224,29 @@ class MockDataService {
     for (const vessel of vessels) {
       try {
         await storage.createVessel(vessel);
-        logger.info(`Created vessel: ${vessel.name}`);
+        console.log(`Created vessel: ${vessel.name}`);
         created++;
       } catch (error: any) {
-        logger.info(`Vessel ${vessel.name} already exists or error:`, { error: error?.message || error });
+        console.log(`Vessel ${vessel.name} already exists or error:`, error?.message || error);
         existing++;
       }
     }
-
+    
     // Verify vessels exist in database
     const allVessels = await storage.getVessels();
-    logger.info(`[VESSEL SEED] Created: ${created}, Already existed: ${existing}, Total in DB: ${allVessels.length}`);
-
+    console.log(`[VESSEL SEED] Created: ${created}, Already existed: ${existing}, Total in DB: ${allVessels.length}`);
+    
     if (allVessels.length === 0) {
-      logger.error('[VESSEL SEED ERROR] No vessels found in database after seeding!');
+      console.error('[VESSEL SEED ERROR] No vessels found in database after seeding!');
     }
   }
 
   private async createStorageSites() {
     const ports = await storage.getPorts();
-
+    
     for (const port of ports) {
-      let sites: Array<{ portId: string; name: string; siteType: string; capacity: number; latitude: number; longitude: number }> = [];
-
+      let sites: Array<{portId: string; name: string; siteType: string; capacity: number; latitude: number; longitude: number}> = [];
+      
       if (port.code === 'FJR') {
         sites = [
           { portId: port.id, name: 'Fujairah Site A', siteType: 'tank_farm', capacity: 1500000, latitude: 25.1145, longitude: 56.3688 },
@@ -261,27 +260,27 @@ class MockDataService {
         ];
       } else if (port.code === 'SIN') {
         sites = [
-          { portId: port.id, name: 'Jurong Island Terminal', siteType: 'tank_farm', capacity: 5000000, latitude: 1.2650, longitude: 103.6800 },
-          { portId: port.id, name: 'Pulau Bukom Terminal', siteType: 'tank_farm', capacity: 4500000, latitude: 1.2300, longitude: 103.7600 }
+          { portId: port.id, name: 'Jurong Island Terminal', siteType: 'tank_farm', capacity: 5000000, latitude: 1.265, longitude: 103.68 },
+          { portId: port.id, name: 'Pulau Bukom Terminal', siteType: 'tank_farm', capacity: 4500000, latitude: 1.23, longitude: 103.76 }
         ];
       }
 
       for (const site of sites) {
         try {
           const newSite = await storage.createStorageSite(site);
-          logger.info(`Created storage site: ${site.name}`);
+          console.log(`Created storage site: ${site.name}`);
 
           // Create initial fill data
           await storage.createStorageFillData({
             siteId: newSite.id,
             timestamp: new Date(),
-            fillIndex: (Math.random() * 0.6 + 0.2).toString(), // 20-80% fill
-            confidence: (0.8 + Math.random() * 0.2).toString(),
+            fillIndex: String((Math.random() * 0.6 + 0.2).toFixed(4)), // 20-80% fill
+            confidence: String((0.8 + Math.random() * 0.2).toFixed(4)),
             source: 'SAR',
             metadata: { initialization: true }
           });
         } catch (error: any) {
-          logger.info(`Storage site ${site.name} already exists or error:`, { error: error?.message || error });
+          console.log(`Storage site ${site.name} already exists or error:`, error?.message || error);
         }
       }
     }
@@ -289,7 +288,7 @@ class MockDataService {
 
   private async generateInitialStats() {
     const ports = await storage.getPorts();
-
+    
     for (const port of ports) {
       try {
         await storage.createPortStats({
@@ -298,18 +297,18 @@ class MockDataService {
           arrivals: Math.floor(Math.random() * 8) + 3,
           departures: Math.floor(Math.random() * 6) + 2,
           queueLength: Math.floor(Math.random() * 15) + 5,
-          averageWaitHours: (Math.random() * 10 + 8).toString(),
+          averageWaitHours: String((Math.random() * 10 + 8).toFixed(2)),
           totalVessels: Math.floor(Math.random() * 25) + 35,
-          throughputMT: (Math.random() * 1.5 + 1.2).toString(),
+          throughputMT: String((Math.random() * 1.5 + 1.2).toFixed(2)),
           byClass: {
             VLCC: Math.floor(Math.random() * 8) + 5,
             Suezmax: Math.floor(Math.random() * 12) + 8,
             Aframax: Math.floor(Math.random() * 20) + 15
           }
         });
-        logger.info(`Created initial statistics for ${port.name}`);
+        console.log(`Created initial statistics for ${port.name}`);
       } catch (error: any) {
-        logger.info(`Stats for ${port.name} already exist or error:`, { error: error?.message || error });
+        console.log(`Stats for ${port.name} already exist or error:`, error?.message || error);
       }
     }
   }
@@ -411,9 +410,9 @@ class MockDataService {
     for (const grade of crudeGrades) {
       try {
         await storage.createCrudeGrade(grade);
-        logger.info(`Created crude grade: ${grade.name}`);
+        console.log(`Created crude grade: ${grade.name}`);
       } catch (error: any) {
-        logger.info(`Crude grade ${grade.name} already exists or error:`, { error: error?.message || error });
+        console.log(`Crude grade ${grade.name} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -421,7 +420,7 @@ class MockDataService {
   private async createLngCargoes() {
     const ports = await storage.getPorts();
     const vessels = await storage.getVessels();
-
+    
     const lngCargoes = [
       {
         cargoId: 'LNG-2024-001',
@@ -479,16 +478,16 @@ class MockDataService {
     for (const cargo of lngCargoes) {
       try {
         await storage.createLngCargo(cargo);
-        logger.info(`Created LNG cargo: ${cargo.cargoId}`);
+        console.log(`Created LNG cargo: ${cargo.cargoId}`);
       } catch (error: any) {
-        logger.info(`LNG cargo ${cargo.cargoId} already exists or error:`, { error: error?.message || error });
+        console.log(`LNG cargo ${cargo.cargoId} already exists or error:`, error?.message || error);
       }
     }
   }
 
   private async createDryBulkFixtures() {
     const ports = await storage.getPorts();
-
+    
     const fixtures = [
       {
         fixtureId: 'DBF-2024-001',
@@ -534,9 +533,9 @@ class MockDataService {
     for (const fixture of fixtures) {
       try {
         await storage.createDryBulkFixture(fixture);
-        logger.info(`Created dry bulk fixture: ${fixture.fixtureId}`);
+        console.log(`Created dry bulk fixture: ${fixture.fixtureId}`);
       } catch (error: any) {
-        logger.info(`Dry bulk fixture ${fixture.fixtureId} already exists or error:`, { error: error?.message || error });
+        console.log(`Dry bulk fixture ${fixture.fixtureId} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -592,9 +591,9 @@ class MockDataService {
     for (const product of products) {
       try {
         await storage.createPetrochemProduct(product);
-        logger.info(`Created petrochem product: ${product.productCode}`);
+        console.log(`Created petrochem product: ${product.productCode}`);
       } catch (error: any) {
-        logger.info(`Petrochem product ${product.productCode} already exists or error:`, { error: error?.message || error });
+        console.log(`Petrochem product ${product.productCode} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -657,9 +656,9 @@ class MockDataService {
     for (const flow of flows) {
       try {
         await storage.createAgriBiofuelFlow(flow);
-        logger.info(`Created agri flow: ${flow.flowId}`);
+        console.log(`Created agri flow: ${flow.flowId}`);
       } catch (error: any) {
-        logger.info(`Agri flow ${flow.flowId} already exists or error:`, { error: error?.message || error });
+        console.log(`Agri flow ${flow.flowId} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -741,9 +740,9 @@ class MockDataService {
     for (const refinery of refineries) {
       try {
         await storage.createRefinery(refinery);
-        logger.info(`Created refinery: ${refinery.name}`);
+        console.log(`Created refinery: ${refinery.name}`);
       } catch (error: any) {
-        logger.info(`Refinery ${refinery.refineryCode} already exists or error:`, { error: error?.message || error });
+        console.log(`Refinery ${refinery.refineryCode} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -835,9 +834,9 @@ class MockDataService {
     for (const balance of balances) {
       try {
         await storage.createSupplyDemandBalance(balance);
-        logger.info(`Created balance: ${balance.balanceId}`);
+        console.log(`Created balance: ${balance.balanceId}`);
       } catch (error: any) {
-        logger.info(`Balance ${balance.balanceId} already exists or error:`, { error: error?.message || error });
+        console.log(`Balance ${balance.balanceId} already exists or error:`, error?.message || error);
       }
     }
   }
@@ -933,9 +932,9 @@ class MockDataService {
     for (const report of reports) {
       try {
         await storage.createResearchReport(report);
-        logger.info(`Created research report: ${report.reportId}`);
+        console.log(`Created research report: ${report.reportId}`);
       } catch (error: any) {
-        logger.info(`Report ${report.reportId} already exists or error:`, { error: error?.message || error });
+        console.log(`Report ${report.reportId} already exists or error:`, error?.message || error);
       }
     }
   }

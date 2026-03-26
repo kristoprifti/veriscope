@@ -13,6 +13,7 @@ import {
 } from "@shared/schema";
 import { authenticateApiKey } from "../middleware/apiKeyAuth";
 import { optionalAuth } from "../middleware/rbac";
+import { makeDestinationKey } from "../services/destinationKey";
 import { listAlertDeliveries } from "../services/alertDeliveriesService";
 import {
     getDeliveryHealthByDay,
@@ -1121,6 +1122,7 @@ alertsRouter.post(
                     day: now.toISOString().slice(0, 10),
                     destinationType: subscription.channel,
                     endpoint: subscription.endpoint,
+                    destinationKey: makeDestinationKey(subscription.channel, subscription.endpoint),
                     status,
                     attempts: 1,
                     lastHttpStatus: httpStatus,

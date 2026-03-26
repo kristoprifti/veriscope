@@ -23,3 +23,6 @@ Thumbs.db
 
 # Temporary / generated artefacts
 page1.json
+audit-export.csv
+audit-export.jsonl
+scripts/fix-imports.py

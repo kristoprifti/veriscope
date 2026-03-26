@@ -17,6 +17,14 @@ import { portsRouter } from "./routers/ports.router";
 import { alertsRouter } from "./routers/alerts.router";
 import { vesselsRouter } from "./routers/vessels.router";
 import { commoditiesRouter } from "./routers/commodities.router";
+import { flowsRouter } from "./routers/flows.router";
+import { alertRulesRouter } from "./routers/alert-rules.router";
+import { teamRouter } from "./routers/team.router";
+import { auditRouter } from "./routers/audit.router";
+import { destinationsRouter } from "./routers/destinations.router";
+import { incidentsRouter } from "./routers/incidents.router";
+import { escalationsRouter } from "./routers/escalations.router";
+import { alertOpsRouter } from "./routers/alert-ops.router";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -56,6 +64,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/", alertsRouter);
   app.use("/", vesselsRouter);
   app.use("/", commoditiesRouter);
+  app.use("/", flowsRouter);
+  app.use("/", alertRulesRouter);
+  app.use("/", teamRouter);
+  app.use("/", auditRouter);
+  app.use("/", destinationsRouter);
+  app.use("/", incidentsRouter);
+  app.use("/", escalationsRouter);
+  app.use("/", alertOpsRouter);
 
   return httpServer;
 }

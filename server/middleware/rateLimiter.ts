@@ -23,6 +23,7 @@ class RateLimiter {
 
   constructor() {
     this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+    this.cleanupInterval.unref?.();
   }
 
   private cleanup() {
@@ -165,13 +166,8 @@ export function resetAuthRateLimit(req: Request) {
   const key = `auth:${ip}`;
 }
 
-const publicDataLimitConfig: RateLimitConfig = {
-  windowMs: 60 * 1000,
-  maxRequests: 100
-};
-
 export function publicDataRateLimiter(req: Request, res: Response, next: NextFunction) {
-  const result = rateLimiter.check(req, publicDataLimitConfig, 'public');
+  const result = rateLimiter.check(req, apiLimitConfig, 'public');
 
   res.setHeader('X-RateLimit-Remaining', result.remaining);
   res.setHeader('X-RateLimit-Reset', result.resetIn);

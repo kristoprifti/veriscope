@@ -1,5 +1,3 @@
-import { logger } from '../middleware/observability';
-
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -27,6 +25,7 @@ class CacheService {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 60000);
+    this.cleanupInterval.unref?.();
   }
 
   private cleanup() {
@@ -40,7 +39,7 @@ class CacheService {
       }
     }
     if (removed > 0) {
-      logger.info(`[Cache] Cleaned up ${removed} expired entries`);
+      console.log(`[Cache] Cleaned up ${removed} expired entries`);
     }
   }
 

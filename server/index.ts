@@ -6,6 +6,21 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { AppError } from "./utils/AppError";
 import { logger } from "./middleware/observability";
+import { requestIdMiddleware, auditContextMiddleware } from "./middleware/requestContext";
+import { startIncidentAutomationScheduler } from "./services/incidentAutomationScheduler";
+import { seedDemoServer } from "./services/demoServerSeed";
+
+if (process.env.DEMO_SERVER === "1") {
+  process.env.DEV_ROUTES_ENABLED = "true";
+  log("[demo] DEMO_SERVER=1 (DEV_ROUTES_ENABLED forced true)");
+}
+
+if (process.env.NODE_ENV === "production" && process.env.TEST_SCHEMA_PROFILE) {
+  throw new Error("TEST_SCHEMA_PROFILE must not be set in production");
+}
+if (process.env.NODE_ENV === "production" && process.env.DEV_ROUTES_ENABLED === "true") {
+  logger.warn("WARNING: DEV_ROUTES_ENABLED is true in production. This should be disabled.");
+}
 
 const app = express();
 app.set('trust proxy', 1);
@@ -24,6 +39,8 @@ app.use(helmet({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(requestIdMiddleware);
+app.use(auditContextMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -56,7 +73,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  if (process.env.DEMO_SERVER === "1") {
+    await seedDemoServer();
+  }
   const server = await registerRoutes(app);
+  startIncidentAutomationScheduler();
 
   // Ensure unmatched API routes return JSON, not the Vite HTML fallback.
   app.use("/api", (_req, res) => {

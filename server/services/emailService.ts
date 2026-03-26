@@ -70,3 +70,31 @@ export const sendEmail = async (args: { to: string; subject: string; text: strin
     subject: args.subject,
   };
 };
+
+export const renderAlertBundleEmail = ({ payload }: { payload: any }) => {
+  const tenantId = payload?.tenant_id ?? "";
+  const summary = payload?.summary ?? {};
+  const items: any[] = payload?.items ?? [];
+  const sentAt = payload?.sent_at ? new Date(payload.sent_at).toUTCString() : "";
+
+  const subject = `[Veriscope] Alert Bundle — ${summary.matched_total ?? 0} alerts — ${sentAt}`;
+
+  const lines = [
+    `Alert Bundle Report`,
+    `Tenant: ${tenantId}`,
+    `Sent at: ${sentAt}`,
+    `Total matched: ${summary.matched_total ?? 0}`,
+    `Sent: ${summary.sent_items ?? 0}`,
+    `Overflow: ${summary.overflow ?? 0}`,
+    "",
+    "Alerts:",
+    ...items.map((item: any, i: number) => {
+      const severity = item?.cluster_severity ?? item?.severity ?? "UNKNOWN";
+      const entity = item?.entity_name ?? item?.entity_id ?? "Unknown";
+      const day = item?.day ?? "";
+      return `${i + 1}. [${severity}] ${entity} — ${day}`;
+    }),
+  ];
+
+  return { subject, text: lines.join("\n") };
+};
